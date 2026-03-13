@@ -1,0 +1,4 @@
+interface:
+  display_name: "Sector Rotation Analysis"
+  short_description: "A股板块轮动分析，输出短长线评分、追高约束与投资建议"
+  default_prompt: "Use $sector-rotation-analysis to rank A-share sectors for short-term rotation and long-term allocation, avoid blind chasing, and output a detailed report plus a compact scorecard."
