@@ -30,9 +30,9 @@ description: 面向A股全市场的板块轮动与潜力挖掘技能，按固定
 
 ### Phase 1: 构建候选池
 1. 调用 `trading_fund_flow_sector_rank_em` 三次，固定参数：
-- `indicator='今日', sector_type='行业资金流'`
-- `indicator='5日', sector_type='行业资金流'`
-- `indicator='10日', sector_type='行业资金流'`
+- `indicator='今日', sector_type='行业资金流', limit=30`
+- `indicator='5日', sector_type='行业资金流', limit=30`
+- `indicator='10日', sector_type='行业资金流', limit=30`
 2. 候选入池规则固定：
 - 任一窗口进入前 `20` 的行业板块入池。
 - 用排名积分法聚合：第 1 名记 20 分，第 20 名记 1 分，未上榜记 0 分。
