@@ -1,4 +1,4 @@
 interface:
   display_name: "Sector Rotation Analysis"
   short_description: "A股板块潜力挖掘，关注量价流动性、资金持续性与双评分"
-  default_prompt: "Use $sector-rotation-analysis to perform sector-only A-share rotation analysis, emphasize liquidity quality, breadth, balanced short/long scoring, and value-oriented execution, then output a detailed report plus a compact scorecard."
+  default_prompt: "Use $sector-rotation-analysis to perform sector-only A-share rotation analysis, emphasize liquidity quality, funds persistence, balanced short/long scoring, and value-oriented execution, then output a detailed report plus a compact scorecard."
