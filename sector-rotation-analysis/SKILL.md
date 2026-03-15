@@ -6,7 +6,7 @@ description: 面向A股全市场的板块轮动与潜力挖掘技能，按固定
 # 板块轮动分析
 
 ## 概述
-按固定流程分析 A 股行业板块，输出短线机会、长线配置方向、潜力板块和回避板块。以专业交易员口吻写作，强调收益风险比、资金持续性、流动性质量与中期趋势，不做情绪化追热点。
+按固定流程分析 A 股行业板块，输出短线机会、长线配置方向、潜力板块。以专业交易员口吻写作，强调收益风险比、资金持续性、流动性质量与中期趋势，不做情绪化追热点。
 
 必须同时遵守硬约束：
 1. 主评分宇宙固定为 A 股行业板块；概念板块只用于催化补充，不得混入主排名。
@@ -17,7 +17,6 @@ description: 面向A股全市场的板块轮动与潜力挖掘技能，按固定
 1. 阅读 `references/tool-playbook.md`，按固定顺序调用工具。
 2. 阅读 `references/scoring-rules.md`，按统一打分和动作映射出结论。
 3. 阅读 `references/output-format.md`，严格按模板输出。
-4. 需要扩展新闻检索词时，阅读 `references/news-keywords.md`。
 
 ## 可选输入
 - `analysis_date`：分析日期；缺省时使用当前日期。
@@ -40,14 +39,9 @@ description: 面向A股全市场的板块轮动与潜力挖掘技能，按固定
 - 保留积分最高的前 `candidate_limit` 个板块，缺省为 `10`。
 
 ### Phase 2: 板块结构与流动性采集
-对每个候选行业板块，固定调用：
-1. `trading_industry_hist_em(symbol, period='日k', adjust='qfq')`
-2. `trading_industry_hist_em(symbol, period='周k', adjust='qfq')`
-
-固定采样规则：
-- 日k 仅分析最近 `10` 条数据。
-- 周k 仅分析最近 `10` 条数据。
-- 若工具无显式 `limit` 参数，则以返回结果中的最近 `10` 条记录为准。
+对候选池中的每个候选行业板块，固定调用：
+1. `trading_industry_hist_em(symbol, period='日k', adjust='qfq', limit=10)`
+2. `trading_industry_hist_em(symbol, period='周k', adjust='qfq', limit=10)`
 
 从板块数据中提炼：
 - 最新收盘相对 20 日均值的偏离
@@ -79,10 +73,8 @@ description: 面向A股全市场的板块轮动与潜力挖掘技能，按固定
 - 短线关注 Top5
 - 长线关注 Top5
 - 潜力观察 Top3
-- 回避板块 Top3
 3. 固定潜力板块定义：
 - 长线分 `>= 70`
-- 短线分 `< 60`
 - 新闻面净判断为偏多
 - 周线趋势未破坏且日线仍处于中期上行框架
 - 流动性边际改善且不过热
