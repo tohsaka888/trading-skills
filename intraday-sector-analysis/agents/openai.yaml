@@ -1,0 +1,4 @@
+interface:
+  display_name: "Intraday Sector Analysis"
+  short_description: "A股盘中行业板块分时强弱、做T机会与风险控制策略分析"
+  default_prompt: "Use $intraday-sector-analysis to analyze A-share intraday industry sectors, rank the top 5 boards by fund flow and intraday structure, judge whether each is suitable for 做T, and output a concise Chinese trading card with risk-first execution guidance."
