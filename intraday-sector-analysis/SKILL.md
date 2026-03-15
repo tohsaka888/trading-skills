@@ -44,17 +44,7 @@ description: 面向A股盘中实时行业板块交易的分时分析技能，基
 4. `10:30-14:30` 执行完整模型。
 5. `14:30-15:00` 可以判断持有、减仓、尾盘不追，但不建议新开激进做T。
 
-### Phase 2: 构建行业白名单
-1. 先调用 `trading_industry_name_em(limit=200)` 获取东方财富行业板块名称列表。
-2. 后续所有资金流、异动、实时行情候选都必须先和行业白名单匹配。
-3. 自动剔除无法匹配行业白名单的记录，例如：
-- `融资融券`
-- `深股通`
-- 指数类
-- 概念类
-- 其他非行业板块标签
-
-### Phase 3: 预选池构建
+### Phase 2: 预选池构建
 1. 固定调用 `trading_fund_flow_sector_rank_em` 三次：
 - `indicator='今日', sector_type='行业资金流', sort_by='主力净流入', limit=20`
 - `indicator='5日', sector_type='行业资金流', sort_by='主力净流入', limit=15`
@@ -73,7 +63,7 @@ description: 面向A股盘中实时行业板块交易的分时分析技能，基
 - 实时强度预留 `20`
 5. 保留预选分最高的前 `candidate_limit` 个板块，缺省 `8` 个进入深度分析。
 
-### Phase 4: 深度分析
+### Phase 3: 深度分析
 对深度分析池中的每个行业板块，固定调用：
 1. `trading_industry_spot_em(symbol, limit=30)`
 2. `trading_industry_hist_em(symbol, period='日k', adjust='qfq', limit=10)`
@@ -92,7 +82,7 @@ description: 面向A股盘中实时行业板块交易的分时分析技能，基
 - 分时回撤后是否有承接
 - 是否存在适合做T的震荡与回落买点结构
 
-### Phase 5: 评分、动作与排序
+### Phase 4: 评分、动作与排序
 1. 按 `references/scoring-rules.md` 计算每个板块的：
 - `盘中关注分`
 - `做T适配分`
@@ -116,5 +106,5 @@ description: 面向A股盘中实时行业板块交易的分时分析技能，基
 1. 全文使用中文。
 2. 以专业交易员口吻写作，强调收益风险比、执行窗口、追高风险和失效条件。
 3. 先讲结论，再给证据。
-4. 严格按 `references/output-format.md` 输出。
+4. 严格按 `references/output-format.md` 格式输出。
 5. 所有时效信息必须写具体日期和时间。
