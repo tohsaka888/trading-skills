@@ -24,19 +24,6 @@ description: 面向A股全市场的板块轮动与潜力挖掘技能，按固定
 
 ## 固定流程
 
-### Phase 0: 环境检查与工具可用性验证
-1. 在正式分析前，必须先检查 `uv` 可用，并使用当前 skill 自带的 `python/` 作为本地项目、`scripts/sector_data.py` 作为入口脚本执行命令。
-2. 必须先对本地脚本做最小化试调用，确认关键能力可用：
-- `uv run --project python python scripts/sector_data.py fund-flow-rank --indicator 今日 --sector-type 行业资金流 --sort-by 主力净流入 --limit 3`
-- `uv run --project python python scripts/sector_data.py industry-hist --symbol <有效行业名> --period 日k --adjust qfq --limit 3`
-3. 若 Eastmoney / Akshare 直连受限，必须先配置以下环境变量，再做最小化试调用：
-- `TRADING_MCP_AKSHARE_PROXY_ENABLED`
-- `TRADING_MCP_AKSHARE_PROXY_AUTH_IP`
-- `TRADING_MCP_AKSHARE_PROXY_AUTH_TOKEN`
-- `TRADING_MCP_AKSHARE_PROXY_RETRY`
-4. 只有在 `TRADING_MCP_AKSHARE_PROXY_ENABLED=true` 且提供 `TRADING_MCP_AKSHARE_PROXY_AUTH_IP` 时，代理 patch 才会启用；`AUTH_TOKEN` 可选，`RETRY` 为重试次数。
-5. 若 `uv` 不可用、脚本不可执行、依赖无法解析，或关键命令调用失败，必须立即停止，不得继续做板块分析。
-
 ### Phase 1: 构建候选池
 1. 通过当前 skill 自带 uv 脚本调用 `fund-flow-rank` 三次，固定参数：
 - `uv run --project python python scripts/sector_data.py fund-flow-rank --indicator 今日 --sector-type 行业资金流 --sort-by 主力净流入 --limit 30`

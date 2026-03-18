@@ -20,24 +20,6 @@ description: 面向A股盘中实时行业板块交易的分时分析技能，基
 
 ## 固定流程
 
-### Phase 0: 环境检查
-1. 正式分析前，必须先确认 `uv` 可用，并使用当前 skill 自带的 `python/` 作为本地项目、`scripts/sector_data.py` 作为入口脚本执行命令。
-2. 必须先对以下本地命令做最小化试调用：
-- `uv run --project python python scripts/sector_data.py industry-name --limit 3`
-- `uv run --project python python scripts/sector_data.py fund-flow-rank --indicator 今日 --sector-type 行业资金流 --sort-by 主力净流入 --limit 3`
-- `uv run --project python python scripts/sector_data.py board-change --limit 3`
-- `uv run --project python python scripts/sector_data.py industry-spot --symbol <有效行业名> --limit 3`
-- `uv run --project python python scripts/sector_data.py industry-hist --symbol <有效行业名> --period 日k --adjust qfq --limit 3`
-- `uv run --project python python scripts/sector_data.py industry-hist-min --symbol <有效行业名> --period 5 --limit 3`
-3. 若 Eastmoney / Akshare 直连受限，必须先配置以下环境变量，再做最小化试调用：
-- `TRADING_MCP_AKSHARE_PROXY_ENABLED`
-- `TRADING_MCP_AKSHARE_PROXY_AUTH_IP`
-- `TRADING_MCP_AKSHARE_PROXY_AUTH_TOKEN`
-- `TRADING_MCP_AKSHARE_PROXY_RETRY`
-4. 只有在 `TRADING_MCP_AKSHARE_PROXY_ENABLED=true` 且提供 `TRADING_MCP_AKSHARE_PROXY_AUTH_IP` 时，代理 patch 才会启用；`AUTH_TOKEN` 可选，`RETRY` 为重试次数。
-5. 任一关键命令不可执行、依赖无法解析、调用失败或返回异常，立即停止，不得继续分析。
-6. 环境检查失败时只允许输出失败原因，不允许输出任何板块观点。
-
 ### Phase 1: 时段校验
 1. 必须把 `analysis_date` 和 `analysis_time` 写成具体日期和时间。
 2. 若时间早于 `09:35`，直接停止，明确写出“分时数据不足，不提供盘中结论”。
