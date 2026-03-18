@@ -1,6 +1,6 @@
 ---
 name: intraday-sector-analysis
-description: 面向A股盘中实时行业板块交易的分时分析技能，基于 trading-mcp 的行业资金流、东方财富板块异动、行业实时行情、日线与5分钟分时结构，筛选当日最值得盯盘的五个行业板块，判断强弱持续性、是否适合做T、是否禁止追高，并输出专业交易员风格的极简交易卡。当用户要求盘中板块分析、分时板块分析、行业板块实时强弱、板块做T建议或当日板块战术建议时使用。
+description: 面向A股盘中实时行业板块交易的分时分析技能，基于本仓库内 uv 脚本提供的行业资金流、东方财富板块异动、行业实时行情、日线与5分钟分时结构，筛选当日最值得盯盘的五个行业板块，判断强弱持续性、是否适合做T、是否禁止追高，并输出专业交易员风格的极简交易卡。当用户要求盘中板块分析、分时板块分析、行业板块实时强弱、板块做T建议或当日板块战术建议时使用。
 ---
 
 # 盘中板块分时交易分析
@@ -21,15 +21,22 @@ description: 面向A股盘中实时行业板块交易的分时分析技能，基
 ## 固定流程
 
 ### Phase 0: 环境检查
-1. 正式分析前，必须先确认 `trading-mcp` 已连接，且以下工具存在并可最小化试调用：
-- `trading_industry_name_em`
-- `trading_fund_flow_sector_rank_em`
-- `trading_board_change_em`
-- `trading_industry_spot_em`
-- `trading_industry_hist_em`
-- `trading_industry_hist_min_em`
-2. 任一关键工具不存在、未注册、连接失败或服务异常，立即停止，不得继续分析。
-3. 环境检查失败时只允许输出失败原因，不允许输出任何板块观点。
+1. 正式分析前，必须先确认 `uv` 可用，并使用当前 skill 自带的 `python/` 作为本地项目、`scripts/sector_data.py` 作为入口脚本执行命令。
+2. 必须先对以下本地命令做最小化试调用：
+- `uv run --project python python scripts/sector_data.py industry-name --limit 3`
+- `uv run --project python python scripts/sector_data.py fund-flow-rank --indicator 今日 --sector-type 行业资金流 --sort-by 主力净流入 --limit 3`
+- `uv run --project python python scripts/sector_data.py board-change --limit 3`
+- `uv run --project python python scripts/sector_data.py industry-spot --symbol <有效行业名> --limit 3`
+- `uv run --project python python scripts/sector_data.py industry-hist --symbol <有效行业名> --period 日k --adjust qfq --limit 3`
+- `uv run --project python python scripts/sector_data.py industry-hist-min --symbol <有效行业名> --period 5 --limit 3`
+3. 若 Eastmoney / Akshare 直连受限，必须先配置以下环境变量，再做最小化试调用：
+- `TRADING_MCP_AKSHARE_PROXY_ENABLED`
+- `TRADING_MCP_AKSHARE_PROXY_AUTH_IP`
+- `TRADING_MCP_AKSHARE_PROXY_AUTH_TOKEN`
+- `TRADING_MCP_AKSHARE_PROXY_RETRY`
+4. 只有在 `TRADING_MCP_AKSHARE_PROXY_ENABLED=true` 且提供 `TRADING_MCP_AKSHARE_PROXY_AUTH_IP` 时，代理 patch 才会启用；`AUTH_TOKEN` 可选，`RETRY` 为重试次数。
+5. 任一关键命令不可执行、依赖无法解析、调用失败或返回异常，立即停止，不得继续分析。
+6. 环境检查失败时只允许输出失败原因，不允许输出任何板块观点。
 
 ### Phase 1: 时段校验
 1. 必须把 `analysis_date` 和 `analysis_time` 写成具体日期和时间。
@@ -39,11 +46,12 @@ description: 面向A股盘中实时行业板块交易的分时分析技能，基
 5. `14:30-15:00` 可以判断持有、减仓、尾盘不追，但不建议新开激进做T。
 
 ### Phase 2: 预选池构建
-1. 固定调用 `trading_fund_flow_sector_rank_em` 三次：
-- `indicator='今日', sector_type='行业资金流', sort_by='主力净流入', limit=20`
-- `indicator='5日', sector_type='行业资金流', sort_by='主力净流入', limit=15`
-- `indicator='10日', sector_type='行业资金流', sort_by='主力净流入', limit=10`
-2. 固定调用 `trading_board_change_em(limit=30)` 一次，并只保留能匹配行业白名单的记录。
+1. 先执行 `uv run --project python python scripts/sector_data.py industry-name --limit 200` 建立行业白名单。
+2. 固定通过当前 skill 自带 uv 脚本调用 `fund-flow-rank` 三次：
+- `uv run --project python python scripts/sector_data.py fund-flow-rank --indicator 今日 --sector-type 行业资金流 --sort-by 主力净流入 --limit 20`
+- `uv run --project python python scripts/sector_data.py fund-flow-rank --indicator 5日 --sector-type 行业资金流 --sort-by 主力净流入 --limit 15`
+- `uv run --project python python scripts/sector_data.py fund-flow-rank --indicator 10日 --sector-type 行业资金流 --sort-by 主力净流入 --limit 10`
+3. 固定执行 `uv run --project python python scripts/sector_data.py board-change --limit 30` 一次，并只保留能匹配行业白名单的记录。
 3. 候选池固定为以下并集：
 - 今日资金流前 `20`
 - `5日` 资金流前 `15`
@@ -58,10 +66,10 @@ description: 面向A股盘中实时行业板块交易的分时分析技能，基
 5. 保留预选分最高的前 `candidate_limit` 个板块，缺省 `8` 个进入深度分析。
 
 ### Phase 3: 深度分析
-对深度分析池中的每个行业板块，固定调用：
-1. `trading_industry_spot_em(symbol, limit=30)`
-2. `trading_industry_hist_em(symbol, period='日k', adjust='qfq', limit=10)`
-3. `trading_industry_hist_min_em(symbol, period='5', limit=30)`
+对深度分析池中的每个行业板块，固定调用当前 skill 自带 uv 脚本：
+1. `uv run --project python python scripts/sector_data.py industry-spot --symbol <行业名> --limit 30`
+2. `uv run --project python python scripts/sector_data.py industry-hist --symbol <行业名> --period 日k --adjust qfq --limit 10`
+3. `uv run --project python python scripts/sector_data.py industry-hist-min --symbol <行业名> --period 5 --limit 30`
 
 必须从结果中提炼：
 - 上午高点是否明显回吐
@@ -86,8 +94,8 @@ description: 面向A股盘中实时行业板块交易的分时分析技能，基
 
 ## 数据质量与回退
 1. 字段缺失时必须明确披露，不得补猜。
-2. `trading_industry_hist_min_em` 数据不足时，必须降低分时结构权重并写明置信度下降。
-3. `trading_industry_spot_em` 缺失成交额或换手率时，不得补算，只能降权并披露。
+2. `industry-hist-min` 返回数据不足时，必须降低分时结构权重并写明置信度下降。
+3. `industry-spot` 缺失成交额或换手率时，不得补算，只能降权并披露。
 4. 若合格板块不足 `5` 个，按实际数量输出，并说明市场机会不足。
 
 ## 输出约束

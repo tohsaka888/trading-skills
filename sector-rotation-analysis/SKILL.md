@@ -25,23 +25,32 @@ description: 面向A股全市场的板块轮动与潜力挖掘技能，按固定
 ## 固定流程
 
 ### Phase 0: 环境检查与工具可用性验证
-1. 在正式分析前，必须先检查 `trading-mcp` 是否已连接，且是否存在可调用工具。
-2. 若确认 `trading-mcp` 未连接、工具未注册，或关键工具均不可正常调用，必须立即停止，不得继续做板块分析。
+1. 在正式分析前，必须先检查 `uv` 可用，并使用当前 skill 自带的 `python/` 作为本地项目、`scripts/sector_data.py` 作为入口脚本执行命令。
+2. 必须先对本地脚本做最小化试调用，确认关键能力可用：
+- `uv run --project python python scripts/sector_data.py fund-flow-rank --indicator 今日 --sector-type 行业资金流 --sort-by 主力净流入 --limit 3`
+- `uv run --project python python scripts/sector_data.py industry-hist --symbol <有效行业名> --period 日k --adjust qfq --limit 3`
+3. 若 Eastmoney / Akshare 直连受限，必须先配置以下环境变量，再做最小化试调用：
+- `TRADING_MCP_AKSHARE_PROXY_ENABLED`
+- `TRADING_MCP_AKSHARE_PROXY_AUTH_IP`
+- `TRADING_MCP_AKSHARE_PROXY_AUTH_TOKEN`
+- `TRADING_MCP_AKSHARE_PROXY_RETRY`
+4. 只有在 `TRADING_MCP_AKSHARE_PROXY_ENABLED=true` 且提供 `TRADING_MCP_AKSHARE_PROXY_AUTH_IP` 时，代理 patch 才会启用；`AUTH_TOKEN` 可选，`RETRY` 为重试次数。
+5. 若 `uv` 不可用、脚本不可执行、依赖无法解析，或关键命令调用失败，必须立即停止，不得继续做板块分析。
 
 ### Phase 1: 构建候选池
-1. 调用 `trading_fund_flow_sector_rank_em` 三次，固定参数：
-- `indicator='今日', sector_type='行业资金流', limit=30`
-- `indicator='5日', sector_type='行业资金流', limit=30`
-- `indicator='10日', sector_type='行业资金流', limit=30`
+1. 通过当前 skill 自带 uv 脚本调用 `fund-flow-rank` 三次，固定参数：
+- `uv run --project python python scripts/sector_data.py fund-flow-rank --indicator 今日 --sector-type 行业资金流 --sort-by 主力净流入 --limit 30`
+- `uv run --project python python scripts/sector_data.py fund-flow-rank --indicator 5日 --sector-type 行业资金流 --sort-by 主力净流入 --limit 30`
+- `uv run --project python python scripts/sector_data.py fund-flow-rank --indicator 10日 --sector-type 行业资金流 --sort-by 主力净流入 --limit 30`
 2. 候选入池规则固定：
 - 任一窗口进入前 `20` 的行业板块入池。
 - 用排名积分法聚合：第 1 名记 20 分，第 20 名记 1 分，未上榜记 0 分。
 - 保留积分最高的前 `candidate_limit` 个板块，缺省为 `10`。
 
 ### Phase 2: 板块结构与流动性采集
-对候选池中的每个候选行业板块，固定调用：
-1. `trading_industry_hist_em(symbol, period='日k', adjust='qfq', limit=10)`
-2. `trading_industry_hist_em(symbol, period='周k', adjust='qfq', limit=10)`
+对候选池中的每个候选行业板块，固定调用当前 skill 自带 uv 脚本：
+1. `uv run --project python python scripts/sector_data.py industry-hist --symbol <行业名> --period 日k --adjust qfq --limit 10`
+2. `uv run --project python python scripts/sector_data.py industry-hist --symbol <行业名> --period 周k --adjust qfq --limit 10`
 
 从板块数据中提炼：
 - 最新收盘相对 20 日均值的偏离
@@ -92,7 +101,7 @@ description: 面向A股全市场的板块轮动与潜力挖掘技能，按固定
 2. 环境检查未通过时：
 - 直接报错并停止
 - 不输出任何板块分析、评分卡或投资建议
-- 必须向用户写明失败工具和失败原因
+- 必须向用户写明失败命令和失败原因
 3. 所有时效信息必须写具体日期。
 
 ## 输出约束

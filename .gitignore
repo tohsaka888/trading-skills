@@ -1,0 +1,17 @@
+intraday-sector-analysis/python/.venv/
+sector-rotation-analysis/python/.venv/
+intraday-sector-analysis/python/src/*.egg-info/
+sector-rotation-analysis/python/src/*.egg-info/
+
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+.env

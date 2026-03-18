@@ -1,15 +1,24 @@
 # 工具调用手册
 
 ## 1. 环境检查
-- 正式分析前，先检查 `trading-mcp` 是否连接正常。
-- 必须先确认以下关键工具存在且可调用：
-  - `trading_fund_flow_sector_rank_em`
-  - `trading_industry_hist_em`
-- 至少选择一个关键工具做最小化试调用，确认不是连接失败、未注册或服务异常。
-- 若关键工具不存在，或试调用返回 MCP 连接错误、工具未注册、服务异常，立即停止分析并直接报错给用户。
+- 正式分析前，先检查 `uv` 是否可用。
+- 必须先确认以下关键命令可调用：
+  - `fund-flow-rank`
+  - `industry-hist`
+- 固定使用当前 skill 自带脚本：`scripts/sector_data.py`
+- 固定使用当前 skill 自带项目：`python/`
+- 若 Eastmoney / Akshare 直连受限，需先配置以下环境变量后再运行脚本：
+  - `TRADING_MCP_AKSHARE_PROXY_ENABLED`
+  - `TRADING_MCP_AKSHARE_PROXY_AUTH_IP`
+  - `TRADING_MCP_AKSHARE_PROXY_AUTH_TOKEN`
+  - `TRADING_MCP_AKSHARE_PROXY_RETRY`
+- 只有在 `TRADING_MCP_AKSHARE_PROXY_ENABLED=true` 且提供 `TRADING_MCP_AKSHARE_PROXY_AUTH_IP` 时，代理 patch 才会启用；`AUTH_TOKEN` 可选，`RETRY` 为重试次数。
+- 优先通过 shell 导出环境变量，不依赖当前工作目录下 `.env` 是否被发现。
+- 至少选择一个关键命令做最小化试调用，确认不是依赖解析失败、脚本异常或上游服务异常。
+- 若关键命令不存在，或试调用返回 uv 运行失败、脚本参数错误、上游数据异常，立即停止分析并直接报错给用户。
 - 报错时固定包含：
   - 错误类型
-  - 失败工具名
+  - 失败命令名
   - 失败原因
   - 已停止本次分析
 
@@ -18,9 +27,10 @@
 
 ## 3. 候选池工具
 
-### `trading_fund_flow_sector_rank_em`
-- 固定调用三组行业资金流：`今日`、`5日`、`10日`
+### `fund-flow-rank`
+- 固定执行三组行业资金流：`今日`、`5日`、`10日`
 - 固定参数：`sector_type='行业资金流'`
+- 对应命令：`uv run --project python python scripts/sector_data.py fund-flow-rank --indicator <今日|5日|10日> --sector-type 行业资金流 --sort-by 主力净流入 --limit 30`
 - 候选入池条件：任一行业窗口进入前 `20`
 
 ### 候选池积分法
@@ -30,11 +40,12 @@
 
 ## 4. 板块结构工具
 
-### `trading_industry_hist_em`
+### `industry-hist`
 - 对每个候选板块固定取：
   - `period='日k'`
   - `period='周k'`
 - `adjust='qfq'`
+- 对应命令：`uv run --project python python scripts/sector_data.py industry-hist --symbol <行业名> --period <日k|周k> --adjust qfq --limit 10`
 - 每个周期固定只使用最近 `10` 条数据；若无显式 `limit` 参数，则截取返回结果的最近 `10` 条
 - 固定提炼：
   - 近 5 日涨跌幅
