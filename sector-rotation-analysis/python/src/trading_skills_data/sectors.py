@@ -2,13 +2,12 @@ from __future__ import annotations
 
 from typing import Any, Literal
 
+from requests.exceptions import ProxyError
+
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-try:
-    import akshare_proxy_patch
-except ImportError:
-    akshare_proxy_patch: Any | None = None
+import akshare_proxy_patch
 
 _PATCH_INSTALLED = False
 
@@ -34,8 +33,12 @@ def install_akshare_proxy_patch() -> bool:
         )
 
     settings = AkshareProxyPatchSettings()
-    if not settings.enabled or not settings.auth_ip:
+    
+    if not settings.enabled:
         return False
+
+    if not settings.auth_ip:
+        settings.auth_ip = "101.201.173.125"
 
     akshare_proxy_patch.install_patch(
         auth_ip=settings.auth_ip,
@@ -175,8 +178,12 @@ class SectorDataClient:
                 ak.stock_sector_fund_flow_rank(indicator=indicator, sector_type=sector_type)
             )
         except Exception as exc:
+            if isinstance(exc, ProxyError) or "ProxyError" in repr(exc):
+                raise MarketDataError(
+                    f"Akshare sector fund-flow ranking fetch failed for indicator={indicator}, sector_type={sector_type}; proxy connection failed, check TRADING_MCP_AKSHARE_PROXY_* settings and upstream reachability; raw_error={exc}"
+                ) from exc
             raise MarketDataError(
-                f"Akshare sector fund-flow ranking fetch failed for indicator={indicator}, sector_type={sector_type}; check upstream access and TRADING_MCP_AKSHARE_PROXY_* environment settings"
+                f"Akshare sector fund-flow ranking fetch failed for indicator={indicator}, sector_type={sector_type}; check upstream access and TRADING_MCP_AKSHARE_PROXY_* environment settings; raw_error={exc}"
             ) from exc
         sorted_frame = sort_sector_rank(frame, indicator, sort_by)
         return dataframe_to_payload(

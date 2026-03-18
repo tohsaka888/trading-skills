@@ -31,6 +31,8 @@
 - 固定执行三组行业资金流：`今日`、`5日`、`10日`
 - 固定参数：`sector_type='行业资金流'`
 - 对应命令：`uv run --project python python scripts/sector_data.py fund-flow-rank --indicator <今日|5日|10日> --sector-type 行业资金流 --sort-by 主力净流入 --limit 30`
+- `主力净流入` 由脚本按 Akshare 文档语义兼容解析上游字段，优先匹配 `主力净流入-净额` 及其时间窗口变体；若试调用已成功返回数据，但不存在任何可解析的主力净流入语义字段，则必须停止本次量化分析并报告实际返回列名。
+- 若抓取阶段直接报代理连接失败或上游连接失败，应优先排查 `TRADING_MCP_AKSHARE_PROXY_*` 配置与 Eastmoney 可达性，而不是直接判定为字段漂移。
 - 候选入池条件：任一行业窗口进入前 `20`
 
 ### 候选池积分法

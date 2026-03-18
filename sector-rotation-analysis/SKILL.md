@@ -25,11 +25,12 @@ description: 面向A股全市场的板块轮动与潜力挖掘技能，按固定
 ## 固定流程
 
 ### Phase 1: 构建候选池
-1. 通过当前 skill 自带 uv 脚本调用 `fund-flow-rank` 三次，固定参数：
+1. 通过当前 skill 自带 uv 脚本调用 `fund-flow-rank` 三次，固定参数:
 - `uv run --project python python scripts/sector_data.py fund-flow-rank --indicator 今日 --sector-type 行业资金流 --sort-by 主力净流入 --limit 30`
 - `uv run --project python python scripts/sector_data.py fund-flow-rank --indicator 5日 --sector-type 行业资金流 --sort-by 主力净流入 --limit 30`
 - `uv run --project python python scripts/sector_data.py fund-flow-rank --indicator 10日 --sector-type 行业资金流 --sort-by 主力净流入 --limit 30`
-2. 候选入池规则固定：
+2. 若最小试调用已经成功返回数据、但缺少任何可解析的主力净流入语义字段，则必须停止本次量化分析，并明确披露实际返回列名。
+3. 候选入池规则固定：
 - 任一窗口进入前 `20` 的行业板块入池。
 - 用排名积分法聚合：第 1 名记 20 分，第 20 名记 1 分，未上榜记 0 分。
 - 保留积分最高的前 `candidate_limit` 个板块，缺省为 `10`。

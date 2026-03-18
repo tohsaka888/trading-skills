@@ -4,11 +4,7 @@ from typing import Any, Literal
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
-
-try:
-    import akshare_proxy_patch
-except ImportError:
-    akshare_proxy_patch: Any | None = None
+import akshare_proxy_patch
 
 _PATCH_INSTALLED = False
 
@@ -34,8 +30,12 @@ def install_akshare_proxy_patch() -> bool:
         )
 
     settings = AkshareProxyPatchSettings()
-    if not settings.enabled or not settings.auth_ip:
+
+    if not settings.enabled:
         return False
+
+    if not settings.auth_ip:
+        settings.auth_ip = "101.201.173.125"
 
     akshare_proxy_patch.install_patch(
         auth_ip=settings.auth_ip,

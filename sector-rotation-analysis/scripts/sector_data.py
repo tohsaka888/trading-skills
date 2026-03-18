@@ -64,7 +64,7 @@ def main() -> int:
                 error_payload(
                     args.command,
                     {key: value for key, value in vars(args).items() if key != "command"},
-                    "upstream_error",
+                    "schema_or_upstream_error",
                     str(exc),
                 ),
                 ensure_ascii=False,
